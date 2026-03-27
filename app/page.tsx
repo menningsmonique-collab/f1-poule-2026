@@ -31,11 +31,12 @@ export default async function Home() {
   const { data } = await supabase.auth.getUser();
   const user = data?.user ?? null;
 
-  const { data: races } = await supabase
-    .from("races")
-    .select("id,name,race_start,lock_at")
-    .order("lock_at", { ascending: true })
-    .limit(1);
+  const { data: nextRace } = await supabase
+  .from("races")
+  .select("id,name,race_start,lock_at")
+  .gt("lock_at", new Date().toISOString())
+  .order("lock_at", { ascending: true })
+  .maybeSingle();
 
   const nextRace = (races?.[0] as RaceRow | undefined) ?? null;
 
