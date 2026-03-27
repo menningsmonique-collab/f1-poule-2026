@@ -31,14 +31,13 @@ export default async function Home() {
   const { data } = await supabase.auth.getUser();
   const user = data?.user ?? null;
 
+  // ✅ JUISTE volgende race (alleen toekomst)
   const { data: nextRace } = await supabase
-  .from("races")
-  .select("id,name,race_start,lock_at")
-  .gt("lock_at", new Date().toISOString())
-  .order("lock_at", { ascending: true })
-  .maybeSingle();
-
-  const nextRace = (races?.[0] as RaceRow | undefined) ?? null;
+    .from("races")
+    .select("id,name,race_start,lock_at")
+    .gt("lock_at", new Date().toISOString())
+    .order("lock_at", { ascending: true })
+    .maybeSingle();
 
   const { data: drivers } = await supabase
     .from("drivers")
@@ -170,43 +169,41 @@ export default async function Home() {
 
                 <div style={{ display: "flex", gap: 12, marginTop: 16 }}>
                   {isLocked ? (
-  <button
-    disabled
-    style={{
-      background: "#666",
-      color: "#ccc",
-      border: "none",
-      padding: "10px 16px",
-      borderRadius: 8,
-      cursor: "not-allowed",
-      fontWeight: 600,
-      opacity: 0.7,
-    }}
-  >
-    🔒 Te laat Vergrendeld
-  </button>
-) : (
-  <Link href={nextRace ? `/predict?race=${nextRace.id}` : "/races"}>
-    <button
-      style={{
-        background: "#e10600",
-        color: "white",
-        border: "none",
-        padding: "10px 16px",
-        borderRadius: 8,
-        cursor: "pointer",
-        fontWeight: 600,
-      }}
-    >
-      Voorspelling invullen / aanpassen
-    </button>
-  </Link>
-)}
+                    <button
+                      disabled
+                      style={{
+                        background: "#666",
+                        color: "#ccc",
+                        border: "none",
+                        padding: "10px 16px",
+                        borderRadius: 8,
+                        cursor: "not-allowed",
+                        fontWeight: 600,
+                        opacity: 0.7,
+                      }}
+                    >
+                      🔒 Te laat Vergrendeld
+                    </button>
+                  ) : (
+                    <Link href={`/predict?race=${nextRace.id}`}>
+                      <button
+                        style={{
+                          background: "#e10600",
+                          color: "white",
+                          border: "none",
+                          padding: "10px 16px",
+                          borderRadius: 8,
+                          cursor: "pointer",
+                          fontWeight: 600,
+                        }}
+                      >
+                        Voorspelling invullen / aanpassen
+                      </button>
+                    </Link>
+                  )}
 
                   {isLocked && (
-                    <Link
-                      href={`/race-predictions?race=${nextRace.id}`}
-                    >
+                    <Link href={`/race-predictions?race=${nextRace.id}`}>
                       <button
                         style={{
                           background: "#e10600",
@@ -231,7 +228,7 @@ export default async function Home() {
                 )}
               </>
             ) : (
-              <p>Geen races gevonden.</p>
+              <p>Geen toekomstige races gevonden.</p>
             )}
           </section>
         </>
