@@ -19,6 +19,7 @@ type PredictionRow = {
   p1_driver_id: number | null;
   p2_driver_id: number | null;
   p3_driver_id: number | null;
+  fastest_lap_driver_id: number | null;
 };
 
 function nameById(drivers: DriverRow[], id: number | null | undefined) {
@@ -31,15 +32,14 @@ export default async function Home() {
   const { data } = await supabase.auth.getUser();
   const user = data?.user ?? null;
 
-  // ✅ JUISTE volgende race (alleen toekomst)
   const { data: races } = await supabase
-  .from("races")
-  .select("id,name,race_start,lock_at")
-  .gt("lock_at", new Date().toISOString())
-  .order("lock_at", { ascending: true })
-  .limit(1);
+    .from("races")
+    .select("id,name,race_start,lock_at")
+    .gt("lock_at", new Date().toISOString())
+    .order("lock_at", { ascending: true })
+    .limit(1);
 
-const nextRace = (races?.[0] as RaceRow | undefined) ?? null;
+  const nextRace = (races?.[0] as RaceRow | undefined) ?? null;
 
   const { data: drivers } = await supabase
     .from("drivers")
@@ -51,7 +51,9 @@ const nextRace = (races?.[0] as RaceRow | undefined) ?? null;
     user && nextRace
       ? await supabase
           .from("predictions")
-          .select("pole_driver_id,p1_driver_id,p2_driver_id,p3_driver_id")
+          .select(
+            "pole_driver_id,p1_driver_id,p2_driver_id,p3_driver_id,fastest_lap_driver_id"
+          )
           .eq("race_id", nextRace.id)
           .eq("user_id", user.id)
           .maybeSingle()
@@ -69,7 +71,6 @@ const nextRace = (races?.[0] as RaceRow | undefined) ?? null;
         <>
           <p>Ingelogd als: {user.email}</p>
 
-          {/* Top knoppen */}
           <div style={{ display: "flex", gap: 12, marginTop: 12 }}>
             <Link href="/leaderboard">
               <button
@@ -121,7 +122,6 @@ const nextRace = (races?.[0] as RaceRow | undefined) ?? null;
             </form>
           </div>
 
-          {/* Eerstvolgende race */}
           <section style={{ marginTop: 30 }}>
             <h2>Eerstvolgende race</h2>
 
@@ -163,6 +163,10 @@ const nextRace = (races?.[0] as RaceRow | undefined) ?? null;
                     </li>
                     <li>
                       P3: {nameById(drivers ?? [], prediction.p3_driver_id)}
+                    </li>
+                    <li>
+                      Snelste ronde:{" "}
+                      {nameById(drivers ?? [], prediction.fastest_lap_driver_id)}
                     </li>
                   </ul>
                 ) : (
